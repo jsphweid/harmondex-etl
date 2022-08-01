@@ -5,7 +5,7 @@ import shutil
 from os.path import exists
 
 import db
-from etl.util import download_file_if_not_exists
+from etl.util import download_file_if_not_exists, ensure_dir_exists
 from etl.util.tar import extract_all_tar_gz
 import hdf5_getters
 
@@ -43,6 +43,7 @@ def _process_midi(path: str, h5_path=None):
             logging.info(f"Uploading metadata for {midi_filename}")
             db.put(midi_filename, {"Year": year, "Artist": artist, "Release": release, "Title": title})
 
+    ensure_dir_exists(outfile)
     shutil.copyfile(path, outfile)
 
 
