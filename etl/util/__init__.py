@@ -2,13 +2,18 @@ import logging
 import os
 from os.path import exists
 import requests as requests
-import tarfile
+from pathlib import Path
+
+
+def _ensure_dir_exists(path: str):
+    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
 
 
 def download_file(url: str, path: str):
     logging.info(f"Downloading {url} to {path}...")
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
+        _ensure_dir_exists(path)
         with open(path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
