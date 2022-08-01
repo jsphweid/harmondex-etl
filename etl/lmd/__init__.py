@@ -1,5 +1,6 @@
 import logging
 import glob
+import os
 import shutil
 from os.path import exists
 
@@ -10,7 +11,7 @@ import hdf5_getters
 
 logging.basicConfig(level=logging.INFO)
 
-BASEPATH = "big/lmd/"
+BASEPATH = os.environ["STORAGE_PATH"] + "/big/lmd/"
 
 files = [
     "lmd_full.tar.gz",
@@ -27,7 +28,7 @@ def _download_lmd():
 
 def _process_midi(path: str, h5_path=None):
     midi_filename = path.split("/")[-1]
-    outfile = "out/" + midi_filename
+    outfile = os.environ["STORAGE_PATH"] + "/out/" + midi_filename
     if exists(outfile):
         return
     if h5_path:
