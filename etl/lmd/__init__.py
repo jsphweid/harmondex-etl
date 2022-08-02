@@ -11,9 +11,9 @@ import hdf5_getters
 
 logging.basicConfig(level=logging.INFO)
 
-BASEPATH = os.environ["STORAGE_PATH"] + "/big/lmd/"
+LMD_BASEPATH = os.environ["STORAGE_PATH"] + "/big/lmd/"
 
-files = [
+targz_files = [
     "lmd_full.tar.gz",
     "lmd_matched.tar.gz",
     "lmd_matched_h5.tar.gz"
@@ -22,15 +22,12 @@ files = [
 
 def _download_lmd():
     baseurl = "http://hog.ee.columbia.edu/craffel/lmd/"
-    for file in files:
-        download_file_if_not_exists(baseurl + file, BASEPATH + file)
+    for file in targz_files:
+        download_file_if_not_exists(baseurl + file, LMD_BASEPATH + file)
 
 
-def _process_midi(path: str, h5_path=None):
+def _process_midi(path: str, outfile: str, h5_path=None):
     midi_filename = path.split("/")[-1]
-    outfile = os.environ["STORAGE_PATH"] + "/out/" + midi_filename
-    if exists(outfile):
-        return
     if h5_path:
         metadata = db.get(midi_filename)
         if not metadata:
@@ -47,24 +44,42 @@ def _process_midi(path: str, h5_path=None):
     shutil.copyfile(path, outfile)
 
 
+def _get_outfile_name(path: str):
+    midi_filename = path.split("/")[-1]
+    return os.environ["STORAGE_PATH"] + "/out/" + midi_filename
+
+
 def _process_matched():
-    files = glob.glob(BASEPATH + "lmd_matched/**/*.mid", recursive=True)
-    for file in files:
-        subdir = "/".join(file.split("/")[-5:-1])
-        h5_path = BASEPATH + "lmd_matched_h5/" + subdir + ".h5"
-        _process_midi(file, h5_path)
+    files = glob.glob(LMD_BASEPATH + "lmd_matched/**/*.mid", recursive=True)
+    num_original = len(files)
+    files = [(p, _get_outfile_name(p)) for p in files]
+    unprocessed = [(p, out) for p, out in files if not exists(out)]
+    logging.info(f"{len(unprocessed)} of {num_original} LMD Matched files need to still be processed...")
+    for p, out in unprocessed:
+        subdir = "/".join(p.split("/")[-5:-1])
+        h5_path = LMD_BASEPATH + "lmd_matched_h5/" + subdir + ".h5"
+        _process_midi(p, out, h5_path)
 
 
 def _process_full():
-    files = glob.glob(BASEPATH + "lmd_full/**/*.mid", recursive=True)
-    for file in files:
-        _process_midi(file)
+    files = glob.glob(LMD_BASEPATH + "lmd_full/**/*.mid", recursive=True)
+    num_original = len(files)
+    files = [(p, _get_outfile_name(p)) for p in files]
+    unprocessed = [(p, out) for p, out in files if not exists(out)]
+    logging.info(f"{len(unprocessed)} of {num_original} LMD Full files need to still be processed...")
+    for p, out in unprocessed:
+        _process_midi(p, out)
 
 
 def process():
     _download_lmd()
-    extract_all_tar_gz(BASEPATH)
+    extract_all_tar_gz(LMD_BASEPATH)
 
     # go over lmd_matched midi files first
+    logging.info("Processing LMD Matched")
     _process_matched()
+
+    logging.info("Processing LMD Full")
     _process_full()
+
+    logging.info("Finished")
