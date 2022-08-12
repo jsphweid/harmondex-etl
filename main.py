@@ -6,4 +6,4 @@ if __name__ == "__main__":
 
     from etl import lmd, jlw
     jlw.process()
-    # lmd.process()
+    lmd.process()

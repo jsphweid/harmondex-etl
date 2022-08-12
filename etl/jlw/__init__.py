@@ -70,7 +70,7 @@ def process():
     
     logging.info(f"Processing {len(unprocessed)} of {len(all_files)} in jlw")
     
-    for md5, path in unprocessed[0:100]: # todo tmp
+    for md5, path in unprocessed:
         logging.info(f"Processing: {path}")
         process_file(md5, path)
 
