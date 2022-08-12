@@ -29,9 +29,9 @@ def get_metadata(path: str) -> Optional[dict]:
             val = metadata.tags[tag][0]
             if type(val) == str:
                 res[tag.capitalize()] = val
-        return res
     except:
-        return res
+        pass
+    return res
 
 
 def process_file(h: str, path: str):
