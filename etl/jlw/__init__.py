@@ -63,7 +63,7 @@ def already_processed(h: str) -> bool:
 def process():
     logging.info("Processing JLW personal 'dataset'")
 
-    all_files = glob.glob(JLW_BASEPATH + "**/*.*", recursive=True)
+    all_files = [a for a in glob.glob(JLW_BASEPATH + "**/*.*", recursive=True) if os.path.isfile(a)]
     all_files = [(f[len(os.environ["STORAGE_PATH"])+5:], f) for f in all_files]
     all_files = [(hashlib.md5(s.encode()).hexdigest(), f) for s, f in all_files]
     unprocessed = [(h, f) for h, f in all_files if not already_processed(h)]
